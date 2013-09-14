@@ -1,0 +1,149 @@
+<html>    
+    <head>
+		<style media="screen" type="text/css">
+			body {
+				padding:0px;
+				margin:0px;
+			}
+			div#playerHost {
+				background-color:black;
+				position:fixed;
+				width:100%;
+				height:100%;
+			}
+			ytplayer {
+				position:fixed;
+				margin: 0px;
+				width:100%;
+				height:100%;
+			}
+		</style>
+		
+		<script src="http://cdn.kendostatic.com/2013.2.716/js/jquery.min.js"></script>
+		<script src="https://apis.google.com/js/client.js"></script>
+		
+		<script>
+			var contains = function(list, predicate) {
+				var result = false;
+				list.forEach(function(i) {
+					if (predicate(i)) {
+						result = true;
+					}					
+				});
+				return result;
+			};
+			
+			var getNewItems = function(oldList, newList) {
+				var result = [];
+				newList.forEach(function(item) {
+					if (!contains(oldList, function(i) { return i.id == item.id; })) {
+						result.push(item);
+					}					
+				});
+				return result;
+			};
+			
+			var displayMessage = function(message) {
+				var m = $("#messagePlaceholder");
+				m.html(message);
+				m.fadeIn(500);
+				m.delay(1500).fadeOut(500);
+			};
+			
+			var notifyItemsAdded = function(newItems) {
+				newItems.forEach(function(item) {
+					displayMessage(item.id + " " + item.requestedBy + " added");
+				});
+			};
+		
+			var tooltip;
+			
+			var updateList = function() {
+				$.getJSON('playlist', function(data) {
+					var newItems = getNewItems(allVideosList, data);
+					if (newItems.length > 0) {					
+						notifyItemsAdded(newItems);
+					}
+					allVideosList = data;
+					resumePlayback();
+				});
+			}
+		
+			$(document).ready(function() {
+				$("#messagePlaceholder").hide();
+				updateList();
+			});
+			
+			window.setInterval(updateList, 2000);
+		</script>
+				
+	</head>    
+    <body>
+		<div>		
+			<div id="ytplayer"></div>
+			<div id="messagePlaceholder" style="position: absolute; left: 10px; top: 10px; width: 250px; height: 50px; background-color: red;">
+			</div>
+		</div>
+
+		<script>
+		  // 2. This code loads the IFrame Player API code asynchronously.
+		  var tag = document.createElement('script');
+
+		  tag.src = "https://www.youtube.com/iframe_api";
+		  var firstScriptTag = document.getElementsByTagName('script')[0];
+		  firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+		  var player;
+		  function onYouTubeIframeAPIReady() {
+			player = new YT.Player('ytplayer', {
+			  height: '100%',
+			  width: '100%',
+			  playerVars: { controls: 0, enablejsapi: 1, playerapiid: 'ytplayer' },
+			  events: {
+				'onReady': onPlayerReady,
+				'onStateChange': onPlayerStateChange
+			  }
+			});
+		  }
+
+		  var nextVideoIndex = 0;
+		  var allVideosList = [];
+		  
+		  // 4. The API will call this function when the video player is ready.
+		function onPlayerReady(event) {
+			playNextVideo();
+		}
+
+		function onPlayerStateChange(event) {
+			if (event.data == YT.PlayerState.ENDED) {
+				playNextVideo();
+			}
+		}
+		
+		function resumePlayback() {
+			var playerState = player.getPlayerState();
+			if (player && playerState != YT.PlayerState.PLAYING && playerState != YT.PlayerState.BUFFERING && playerState != -1) {
+				playNextVideo();
+			}
+		}
+		
+		function playNextVideo() {
+			var nextVideoId;
+			allVideosList.forEach(function(item) {
+				if (item.index == nextVideoIndex) {
+					nextVideoId = item.id;
+				}
+			});
+			
+			if (nextVideoId) {
+				nextVideoIndex++;
+				playVideo(nextVideoId);
+			}
+		}
+		  
+		function playVideo(videoId) {
+			player.loadVideoById({'videoId': videoId, 'suggestedQuality': 'highres'})
+		}
+		</script>
+    </body>
+</html>
