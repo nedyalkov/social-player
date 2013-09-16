@@ -32,6 +32,8 @@ var index = function(req, res) {
 	});
 };
 
+app.use('/public', express.static(__dirname + '/public'))
+
 app.get('/', index);
 
 app.get('/playlist', playlist.get);

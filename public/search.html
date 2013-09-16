@@ -1,0 +1,91 @@
+<html>
+    <head>
+		<style media="screen" type="text/css">
+			body {
+				padding:0px;
+				margin:0px;
+			}
+		</style>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+		<script src="http://cdn.kendostatic.com/2013.1.319/js/kendo.all.min.js"></script>
+		
+		<script type="text/x-kendo-template" id="searchResultsItemTemplate">
+			<li style="display:block;margin:0px;padding:0px;">
+				<a onclick="enqueueVideo('#= videoId #')" style="background-color:gray;cursor: pointer; margin: 3px;padding: 5px;display:block;">
+					<div>
+						<img src="#= imageUrl #" style="display:inline;"></img>
+						<span style="vertical-align:top;">#= title #</span>
+					</div>
+				</a>
+			</li>
+		</script>
+		
+		<script>
+		var API_KEY = 'AIzaSyAAD_lGgYjGTiEIDebQJ7dIdp8laDqT_G4';
+		var getThumbnailUrl = function(videoId) {
+			return 'https://i1.ytimg.com/vi/' + videoId + '/sddefault.jpg'
+		}
+		
+		var getInfoUrl = function(videoIds) {
+			var videoIdsString = videoIds.join('%2');
+			return 'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' + videoIdsString + '&key=' + API_KEY
+		}
+		
+		var getSearchUrl = function(query) {
+			return 'https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + query + '&key=' + API_KEY
+		}
+		
+		var userName = 'Miro';
+		
+		var enqueueVideo = function(videoId) {
+			var request = '/playlist/' + videoId + '/' + userName;
+			$.ajax({
+				url: request,
+				type: 'PUT',
+				success: function(response) {
+					alert('Enqueued successfully');
+				}
+			});
+		}
+		
+		var getHtmlForSearchResult = function(item) {
+			var template = kendo.template($("#searchResultsItemTemplate").html());
+			return template({
+						title: item.snippet.title,
+						description: item.snippet.description,
+						imageUrl: item.snippet.thumbnails.default.url,
+						videoId: item.id.videoId,
+					});
+		};
+		
+		var search = function() {
+				$.getJSON(getSearchUrl($('#query').val()), function(data) {
+					var results = $("#results");
+					results.empty();
+					data.items.forEach(function(item) {
+						results.append(getHtmlForSearchResult(item));
+					});
+				});
+		};
+		
+		$(document).ready(function() {
+			search();
+			$("#search").on('click', search);
+			$("#query").keypress(function(e) {
+				if(e.which == 13) {
+					search();
+				}
+			});
+		});
+		</script>
+	</head>
+    <body>
+		<div>
+			<div style="background-color:red">
+				<input type="text" name="query" id="query"></input>
+				<button type="button" name="search" id="search">SEARCH</button>
+			</div>
+			<ul id="results" style="background-color:pink; margin: 0px; padding: 0px;">RESULTS HERE</ul>
+		</div>
+    </body>
+</html>
