@@ -1,3 +1,19 @@
+var API_KEY = 'AIzaSyAAD_lGgYjGTiEIDebQJ7dIdp8laDqT_G4';
+
+var getHtmlForEnqueueItem = function(item, requestedBy) {
+	var template = kendo.template($("#enqueueItemTemplate").html());
+	return template({
+				title: item.snippet.title,
+				imageUrl: item.snippet.thumbnails.default.url,
+				requestedBy: requestedBy,
+			});
+};
+
+var getInfoUrl = function(videoIds) {
+	var videoIdsString = videoIds.join('%2');
+	return 'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' + videoIdsString + '&key=' + API_KEY
+}
+
 var findItem = function(list, predicate) {
 	var result = false;
 	list.forEach(function(i) {
@@ -22,16 +38,19 @@ var displayMessage = function(message) {
 	var m = $("#messagePlaceholder");
 	m.html(message);
 	m.fadeIn(500);
-	m.delay(1500).fadeOut(500);
+	m.delay(1500).fadeOut(700);
 };
 
 var notifyItemsAdded = function(newItems) {
-	newItems.forEach(function(item) {
-		displayMessage(item.id + " " + item.requestedBy + " added");
+	// NOTE: This ignores multiple items.
+	var newItem = newItems[0];
+	
+	var requestedBy = newItem.requestedBy;	
+	$.getJSON(getInfoUrl([newItem.id]), function(data) {		
+		resultItem = data.items[0];
+		displayMessage(getHtmlForEnqueueItem(resultItem, requestedBy));
 	});
 };
-
-var tooltip;
 
 var updateList = function() {
 	$.getJSON('playlist', function(data) {

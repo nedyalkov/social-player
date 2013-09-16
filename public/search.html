@@ -25,12 +25,7 @@
 		var getThumbnailUrl = function(videoId) {
 			return 'https://i1.ytimg.com/vi/' + videoId + '/sddefault.jpg'
 		}
-		
-		var getInfoUrl = function(videoIds) {
-			var videoIdsString = videoIds.join('%2');
-			return 'https://www.googleapis.com/youtube/v3/videos?part=snippet&id=' + videoIdsString + '&key=' + API_KEY
-		}
-		
+				
 		var getSearchUrl = function(query) {
 			return 'https://www.googleapis.com/youtube/v3/search?part=snippet&q=' + query + '&key=' + API_KEY
 		}
